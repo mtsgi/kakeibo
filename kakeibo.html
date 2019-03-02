@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>JavaScript家計簿アプリ</title>
+    <script src="jquery.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, maximum-scale=1">
+    <meta name="format-detection" content="telephone=no">
+    <style type="text/css">
+        #tabs {
+            background: rgb(113, 198, 255);
+            border-bottom: 2px solid white;
+        }
+
+        .tab {
+            cursor: pointer;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, .5);
+            display: inline-block;
+        }
+
+        .tab:hover {
+            background: #ffffff;
+        }
+
+        #tabs a {
+            color: white;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        body {
+            margin: 0px;
+            font-family: 'メイリオ', Meiryo, 'ヒラギノ角ゴ Pro W3', 'Hiragino Kaku Gothic Pro', sans-serif;
+        }
+
+        header {
+            font-size: 18px;
+            color: white;
+            padding: 6px;
+            background: rgb(113, 198, 255);
+            border-bottom: 2px solid white;
+        }
+
+        header a {
+            color: white;
+            margin: 0px 10px;
+            float: right;
+        }
+
+        #inc-out {
+            background: dodgerblue;
+            padding: 4px 10px;
+            border-bottom: 2px solid white;
+            font-size: 20px;
+            color: white;
+        }
+
+        .popup {
+            display: none;
+            cursor: default;
+            position: absolute;
+            border: 1px solid black;
+            background: #f0f0f0;
+            padding: 0px;
+            border-radius: 4px;
+            box-shadow: 0px 1px 2px black;
+            top: 20px;
+            left: calc(50% - 150px);
+            width: 300px;
+        }
+
+        .popup-title {
+            border-bottom: 1px solid black;
+            padding: 5px;
+        }
+
+        .popup-title a {
+            text-decoration: none;
+            cursor: pointer;
+            float: right;
+            color: white;
+            background: red;
+            padding: 0 10px;
+            border-radius: 6px;
+        }
+
+        .popup-content {
+            border-radius: 0 0 4px 4px;
+            background: white;
+            padding: 5px;
+        }
+
+        a {
+            cursor: pointer;
+            color: dodgerblue;
+            text-decoration: underline;
+        }
+
+        .textbox {
+            outline: 0;
+            margin: 2px 0px;
+            box-sizing: border-box;
+            border: none;
+            background: #f0f0f0;
+            border-bottom: 2px solid black;
+            font-size: 16px;
+            padding: 5px;
+            width: 100%;
+            border-radius: 0px;
+        }
+
+        .textbox:focus {
+            background: #ffffff;
+            border-bottom: 2px solid dodgerblue;
+        }
+
+        .button {
+            cursor: default;
+            border-radius: 4px;
+            display: inline-block;
+            padding: 3px 12px;
+            background: rgb(113, 198, 255);
+            color: white;
+            text-align: center;
+            margin-top: 4px;
+            text-decoration: none;
+        }
+
+        .button:hover {
+            background: dodgerblue;
+        }
+
+        section aside {
+            background: rgb(217, 240, 255);
+            padding: 8px;
+            border-bottom: 2px solid white;
+        }
+
+        .dai {
+            font-size: 20px;
+            color: white;
+            background: dodgerblue;
+            padding: 2px 4px;
+        }
+
+        .item {
+            margin: 4px 0px;
+            padding: 0px;
+            border-left: 6px solid dodgerblue;
+            background: white;
+        }
+
+        .item:hover {
+            background: #f0f0f0;
+        }
+
+        .item span {
+            display: inline-block;
+            width: 200px;
+            max-width: 25%;
+            padding: 5px;
+            border-right: 3px solid rgb(217, 240, 255);
+            margin-right: 10px;
+        }
+
+        .item span:hover {
+            background: #dadada;
+        }
+
+        .item a {
+            float: right;
+            padding: 4px 1%;
+        }
+
+        #popup-port textarea {
+            font-size: 15px;
+            background: #c0c0c0;
+            border: 1px solid black;
+            margin-top: 8px;
+            width: calc(100% - 18px);
+            height: 120px;
+            padding: 8px;
+            resize: vertical;
+        }
+
+        #file {
+            display: none;
+        }
+
+        .comment {
+            font-size: 14px;
+            border: 2px solid gray;
+            margin: 2px;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        #lock {
+            box-sizing: border-box;
+            background: white;
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            padding: 40px 20px;
+            line-height: 300%;
+        }
+
+        #lock .textbox {
+            padding: 10px;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        #lock .button {
+            margin-top: 20px;
+            display: block;
+        }
+
+        #reset_secret {
+            position: fixed;
+            right: 0px;
+            bottom: 0px;
+            width: 35px;
+            height: 35px;
+        }
+    </style>
+    <script type="text/javascript">
+        $(document).ready(Load);
+        var about = "クライアントサイドだけ(データベースなど使わない)で動作する軽量JavaScript家計簿アプリです。家計簿データはブラウザにドメインごとに保持されています(IE7以下は非対応です)。"
+        var portUsage = "<div style='font-size:13px'>・インポートの使い方<br>インポートボタンを押下してJS家計簿で出力されたjsonファイルを選択します(ファイルの中身がテキストエリアに表示されます)。追加インポートは、現在のシートを保持したままデータを読み込み、重複するキーのみ値を更新します。新規インポートは、現在のシート内容を一度全て削除し、データを読み込みます(必要なデータは予めエクスポートしてください)。インポートが成功すると結果を示すポップアップが表示されます。<br>・エクスポートの使い方<br>エクスポートボタンを押下すると、テキストエリアにエクスポート内容が表示されます(名前を登録している必要があります)。内容が表示されると「ダウンロード」ボタンからjson形式のファイルを取得できるようになります。</div>";
+        function Load() {
+            if (!localStorage.getItem("kb-password")) {
+                $("#lock").hide();
+                $("#current_pass").text("未設定です");
+            }
+            else $("#current_pass").text("設定済みです");
+            listLoad();
+            if (localStorage.getItem("kb-name")) {
+                $("#myname").text(localStorage.getItem("kb-name"));
+            }
+            //名前
+            $("#myname").click(function () {
+                $("#popup-name").toggle();
+                $("#name-cur").text(localStorage.getItem("kb-name"));
+                $("#new-name").val(localStorage.getItem("kb-name"));
+            });
+            //名前の登録
+            $("#name-add").click(function () {
+                localStorage.setItem("kb-name", $("#new-name").val());
+                $("#myname").text(localStorage.getItem("kb-name"));
+                $("#popup-name").hide();
+                popupAlert("名前の登録", $("#new-name").val() + "という名前を登録しました。");
+            });
+            //名前の削除
+            $("#name-remove").click(function () {
+                localStorage.removeItem("kb-name");
+                $("#myname").text("名前を登録");
+                $("#popup-name").hide();
+                popupAlert("名前の削除", "名前の削除が完了しました。");
+            });
+            //支出
+            $("#add-out").click(function () {
+                $("#popup-out").show();
+            });
+            //支出項目の追加
+            $("#out-add").click(function () {
+                if (isNaN($("#out-price").val())) {
+                    popupAlert("金額エラー", "金額が非数のため登録できません。");
+                    return false;
+                }
+                if ($("#out-name").val().length == 0) {
+                    popupAlert("名称エラー", "名称は1文字以上入力してください。");
+                    return false;
+                }
+                if (localStorage.getItem("kb-out-" + $("#out-name").val())) {
+                    popupAlert("支出項目の重複", $("#out-name").val() + "という名前の支出項目は既に登録されています。別の名前を入力してください。");
+                    return false;
+                }
+                localStorage.setItem("kb-out-" + $("#out-name").val(), Number($("#out-price").val()));
+                listLoad();
+                $("#popup-out").hide();
+            });
+
+            //収入
+            $("#add-inc").click(function () {
+                $("#popup-inc").show();
+            });
+            //収入項目の追加
+            $("#inc-add").click(function () {
+                if (isNaN($("#inc-price").val())) {
+                    popupAlert("金額エラー", "金額が非数のため登録できません。");
+                    return false;
+                }
+                if ($("#inc-name").val().length == 0) {
+                    popupAlert("名称エラー", "名称は1文字以上入力してください。");
+                    return false;
+                }
+                if (localStorage.getItem("kb-inc-" + $("#inc-name").val())) {
+                    popupAlert("収入項目の重複", $("#inc-name").val() + "という名前の収入項目は既に登録されています。別の名前を入力してください。");
+                    return false;
+                }
+                localStorage.setItem("kb-inc-" + $("#inc-name").val(), Number($("#inc-price").val()));
+                listLoad();
+                $("#popup-inc").hide();
+            });
+
+            //パスワードとセキュリティ
+            $("#set-pass").click(function () {
+                localStorage.setItem("kb-password", $("#lock-pass").val());
+            });
+            $("#unlock").click(function () {
+                if ($("#pass").val() == localStorage.getItem("kb-password")) $("#lock").hide();
+                else popupAlert("パスワード", "パスワードが違います");
+            });
+            var resetSecret = 0;
+            $("#reset_secret").click(function(){
+                if( resetSecret > 20 ) location.href = "kakeibo-password-reset.html";
+                resetSecret ++;
+            })
+
+            //全削除
+            $("#ac-do").click(function () {
+                localStorage.clear();
+                listLoad();
+                $(".popup").hide();
+                popupAlert("全削除の完了", "全てのデータを削除しました。");
+            });
+
+            //エクスポート
+            $("#set-port").click(function () {
+                $("#popup-port").show();
+            });
+            $("#export, #export2").click(function () {
+                if (!localStorage.getItem("kb-name")) {
+                    popupAlert("エラー", "家計簿のデータをエクスポートするには名前を登録する必要があります。");
+                    return false;
+                }
+                var expfile = "";
+                if ($(this)[0].id == "export") expfile = encodeURI(JSON.stringify(localStorage));
+                else expfile = JSON.stringify(localStorage);
+                $("#portarea").text(expfile);
+                var blob = new Blob([expfile], { type: "application/json" });
+                $("#export-dl").attr("href", URL.createObjectURL(blob));
+                $("#export-dl").attr("download", "kb-" + localStorage.getItem("kb-name") + ".json");
+                popupAlert("エクスポート完了", "kb-" + localStorage.getItem("kb-name") + ".jsonというファイルを出力しました。ダウンロードボタンからデータを取得してください。");
+            });
+            //インポート
+            var form = document.forms.myform;
+            form.myfile.addEventListener('change', function (e) {
+                var result = e.target.files[0];
+                console.log(result);
+                var reader = new FileReader();
+                reader.readAsText(result);
+                reader.addEventListener('load', function () {
+                    $("#portarea").text(reader.result);
+                    $("#popup-port .comment").hide();
+                    var appendImport = "<div class='comment'>" + result.name + "が選択されました<br><a class='button import-add'>現在のシートに追加インポート</a><br><a class='button import-new'>新規シートとしてインポート</a></div>";
+                    $("#popup-port .popup-content").append(appendImport);
+                    var importFile = JSON.parse(decodeURI(reader.result));
+                    $(".import-add").click(function () {
+                        var kosuu = 0;
+                        var uwa = 0;
+                        var fail = 0;
+                        for (i in importFile) {
+                            if (localStorage.getItem(i)) uwa++;
+                            if (i.indexOf("kb-") != -1) {
+                                localStorage.setItem(i, importFile[i]);
+                                kosuu++;
+                            }
+                            else fail++;
+                        }
+                        $("#myname").text(localStorage.getItem("kb-name"));
+                        popupAlert("追加インポート", "現在のシートにファイル" + result.name + "から新たに" + kosuu + "個のデータを追加で読み込みました(うち" + uwa + "個は上書き／" + fail + "個の失敗データ)。");
+                        listLoad();
+                    });
+                    $(".import-new").click(function () {
+                        var kosuu = 0;
+                        var fail = 0;
+                        localStorage.clear();
+                        for (i in importFile) {
+                            if (i.indexOf("kb-") != -1) {
+                                localStorage.setItem(i, importFile[i]);
+                                kosuu++;
+                            }
+                            else fail++;
+                        }
+                        $("#myname").text(localStorage.getItem("kb-name"));
+                        popupAlert("新規インポート", "既存のシート内容を削除し、ファイル" + result.name + "から" + kosuu + "個のデータを新規で読み込みました(" + fail + "個の失敗データ)。");
+                        listLoad();
+                    });
+                })
+            })
+        }
+        function listLoad() {
+            $("#out-area").html("");
+            $("#inc-area").html("");
+            var outSum = 0;
+            var incSum = 0;
+            for (i in localStorage) {
+                if (i.indexOf("kb-out-") != -1) {
+                    var append = "<div class='item'><span>" + i.slice(7) + "</span>" + localStorage[i] + "円<a onclick='localStorage.removeItem(\"" + i + "\");popupAlert(\"削除の完了\",\"支出項目を削除しました。\")'>削除</a><a onclick='kingaku(\"" + i + "\")'>編集</a></div>";
+                    $("#out-area").append(append);
+                    outSum += Number(localStorage[i]);
+                }
+                else if (i.indexOf("kb-inc-") != -1) {
+                    var append = "<div class='item'><span>" + i.slice(7) + "</span>" + localStorage[i] + "円<a onclick='localStorage.removeItem(\"" + i + "\");popupAlert(\"削除の完了\",\"収入項目を削除しました。\")'>削除</a><a onclick='kingaku(\"" + i + "\")'>編集</a></div>";
+                    $("#inc-area").append(append);
+                    incSum += Number(localStorage[i]);
+                }
+            }
+            $("#out-sum").text(outSum);
+            $("#inc-sum").text(incSum);
+
+            //削除ボタン押下
+            $(".item a").click(function () {
+                //popupAlert("削除の完了","項目を削除しました");
+                listLoad();
+            });
+            //収支計算
+            $("#inc-out-inc").text(incSum);
+            $("#inc-out-out").text(outSum);
+            var ioSum = incSum - outSum;
+            if (ioSum >= 0) {
+                $("#inc-out-sum").text(ioSum + "円");
+                $("#inc-out-sum").css("color", "lime");
+            }
+            else {
+                $("#inc-out-sum").text("マイナス" + (-1 * ioSum) + "円");
+                $("#inc-out-sum").css("color", "orange");
+            }
+        }
+        function kingaku(str) {
+            $("#kingaku-name").text(str.slice(7));
+            $("#kingaku-price").val(localStorage.getItem(str));
+            $("#kingaku-add").off().click(function () {
+                if (isNaN($("#kingaku-price").val())) {
+                    popupAlert("金額エラー", "金額が非数のため登録できません。");
+                    return false;
+                }
+                localStorage.setItem(str, $("#kingaku-price").val());
+                $("#popup-kingaku").hide();
+                popupAlert("金額の変更", str.slice(7) + "の金額を" + $("#kingaku-price").val() + "円に変更しました。");
+                listLoad();
+            });
+            $("#popup-kingaku").show();
+        }
+        function popupAlert(title, content) {
+            $("#popup-alert-title").text(title);
+            var alertClose = "<a class='button' style='display:block' onclick='$(\"#popup-alert\").hide()'>閉じる</a>";
+            $("#popup-alert .popup-content").html(content + alertClose);
+            $("#popup-alert").show();
+        }
+    </script>
+</head>
+
+<body id="body">
+    <header>JavaScript家計簿
+        <a onclick="$('#popup-set').toggle()">設定</a>
+    </header>
+    <div id="tabs">
+        <div class="tab" id="tab-add">追加</div>
+        <a id="myname">名前を登録</a>
+    </div>
+    <div id="inc-out">
+        <span id="inc-out-inc">0</span>円−<span id="inc-out-out">0</span>円＝<span id="inc-out-sum">0円</span>
+    </div>
+    <section>
+        <aside id="out">
+            <span class="dai">支出</span>
+            合計<span id="out-sum">0</span>円
+            <div id="out-area">
+            </div>
+            <a class="button" id="add-out">追加する</a>
+        </aside>
+        <aside id="inc">
+            <span class="dai">収入</span>
+            合計<span id="inc-sum">0</span>円
+            <div id="inc-area">
+            </div>
+            <a class="button" id="add-inc">追加する</a>
+        </aside>
+    </section>
+
+
+
+
+    <div id="lock">ロック中です<br>パスワードを入力<br>
+        <input class="textbox" id="pass" type="password"><br>
+        <a class="button" id="unlock">OK</a>
+        <div id="reset_secret"></div>
+    </div>
+
+
+
+
+    <div class="popup" id="popup-name">
+        <div class="popup-title">
+            名前の登録・変更
+            <a onclick="$('#popup-name').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            現在の名前：<span id="name-cur">未登録</span>
+            <input class="textbox" id="new-name">
+            <a class="button" id="name-add">名前を登録</a>
+            <a class="button" id="name-remove">名前を削除</a>
+        </div>
+    </div>
+
+    <div class="popup" id="popup-out">
+        <div class="popup-title">
+            支出(項目)の追加
+            <a onclick="$('#popup-out').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            名称：
+            <input class="textbox" id="out-name">
+            金額(円)：
+            <input class="textbox" id="out-price">
+            <a class="button" id="out-add">項目を追加</a>
+        </div>
+    </div>
+
+    <div class="popup" id="popup-inc">
+        <div class="popup-title">
+            収入(項目)の追加
+            <a onclick="$('#popup-inc').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            名称：
+            <input class="textbox" id="inc-name">
+            金額(円)：
+            <input class="textbox" id="inc-price">
+            <a class="button" id="inc-add">項目を追加</a>
+        </div>
+    </div>
+
+    <div class="popup" id="popup-kingaku">
+        <div class="popup-title">
+            編集(金額の変更)
+            <a onclick="$('#popup-kingaku').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            名称：<span id="kingaku-name"></span><br>
+            金額(円)：
+            <input class="textbox" id="kingaku-price">
+            <a class="button" id="kingaku-add">変更する</a>
+        </div>
+    </div>
+
+    <div class="popup" id="popup-set">
+        <div class="popup-title">
+            設定
+            <a onclick="$('#popup-set').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            ・セキュリティ<br>
+            <a onclick="$('#popup-lock').show();">パスワードの設定</a><br>
+            ・家計簿データ(.json)<br>
+            <a id="set-port">インポート／エクスポート</a><br>
+            ・JS家計簿について<br>
+            <a onclick="popupAlert('これはなに？',about)">これはなに？</a><br>
+            ・データの全削除<br>
+            <a onclick="$('#popup-ac').show()" style="color:red">全てのデータを消去する</a>
+        </div>
+    </div>
+
+    <div class="popup" id="popup-lock">
+        <div class="popup-title">
+            セキュリティ
+            <a onclick="$('#popup-lock').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            ・現在のパスワード<br>
+            <span id="current_pass"></span><br>
+            ・パスワードの設定<br>
+            <input type="password" class="textbox" id="lock-pass" placeholder="パスワードを入力">
+            <a class="button" id="set-pass" onclick="popupAlert('パスワード','パスワードを設定しました')">パスワードを設定する</a><br>
+            再読込すると有効化されます。パスワードを初期化するときは空欄でパスワードの設定を押下してください。</a>
+        </div>
+    </div>
+
+    <div class="popup" id="popup-port">
+        <div class="popup-title">
+            インポート／エクスポート
+            <a onclick="$('#popup-port').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            ・<a onclick="popupAlert('使い方', portUsage)">機能の使い方</a>
+            <form name="myform">
+                <label for="file">
+                    <a class="button" id="import">インポート</a>
+                    <input type="file" id="file" name="myfile">
+                </label>
+                <a class="button" id="export">エクスポート</a><br>
+                <a class="button" id="export2">エクスポート(エンコードなし)</a>
+            </form>
+            <textarea id="portarea" disabled>データが未選択です</textarea>
+            <a onclick="$('#portarea').text(decodeURI($('#portarea').text()))">デコード</a>
+            <a id="export-dl">ダウンロード</a>
+        </div>
+    </div>
+
+    <div class="popup" id="popup-ac">
+        <div class="popup-title">
+            データの全削除
+            <a onclick="$('#popup-ac').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            本当にデータを全て削除しますか？この操作は取り消せません。必要なデータは予めエクスポートしてください。
+            <a class="button" onclick="$('#popup-ac').hide()">キャンセル</a>
+            <a class="button" id="ac-do" style="background: red">全削除を実行</a>
+        </div>
+    </div>
+
+    <div class="popup" id="popup-alert">
+        <div class="popup-title">
+            <span id="popup-alert-title">エラー</span>
+            <a onclick="$('#popup-alert').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            エラーです
+            <a class="button" onclick="$('#popup-alert').hide()">閉じる</a>
+        </div>
+    </div>
+</body>
+
+</html>
