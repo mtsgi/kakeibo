@@ -1,0 +1,190 @@
+#tabs {
+    background: rgb(113, 198, 255);
+    border-bottom: 2px solid white;
+}
+.tab {
+    cursor: pointer;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, .5);
+    display: inline-block;
+}
+.tab:hover {
+    background: #ffffff;
+}
+#tabs a {
+    color: white;
+    cursor: pointer;
+    text-decoration: underline;
+}
+body {
+    margin: 0px;
+    font-family: 'メイリオ', Meiryo, 'ヒラギノ角ゴ Pro W3', 'Hiragino Kaku Gothic Pro', sans-serif;
+}
+header {
+    font-size: 18px;
+    color: white;
+    padding: 6px;
+    background: rgb(113, 198, 255);
+    border-bottom: 2px solid white;
+}
+header a {
+    color: white;
+    margin: 0px 10px;
+    float: right;
+}
+#inc-out {
+    background: dodgerblue;
+    padding: 4px 10px;
+    border-bottom: 2px solid white;
+    font-size: 20px;
+    color: white;
+}
+.popup {
+    display: none;
+    cursor: default;
+    position: absolute;
+    border: 1px solid black;
+    background: #f0f0f0;
+    padding: 0px;
+    border-radius: 4px;
+    box-shadow: 0px 1px 2px black;
+    top: 20px;
+    left: calc(50% - 150px);
+    width: 300px;
+}
+.popup-title {
+    border-bottom: 1px solid black;
+    padding: 5px;
+}
+.popup-title a {
+    text-decoration: none;
+    cursor: pointer;
+    float: right;
+    color: white;
+    background: red;
+    padding: 0 10px;
+    border-radius: 6px;
+}
+.popup-content {
+    border-radius: 0 0 4px 4px;
+    background: white;
+    padding: 5px;
+}
+a {
+    cursor: pointer;
+    color: dodgerblue;
+    text-decoration: underline;
+}
+.textbox {
+    outline: 0;
+    margin: 2px 0px;
+    box-sizing: border-box;
+    border: none;
+    background: #f0f0f0;
+    border-bottom: 2px solid black;
+    font-size: 16px;
+    padding: 5px;
+    width: 100%;
+    border-radius: 0px;
+}
+.textbox:focus {
+    background: #ffffff;
+    border-bottom: 2px solid dodgerblue;
+}
+.button {
+    cursor: default;
+    border-radius: 4px;
+    display: inline-block;
+    padding: 3px 12px;
+    background: rgb(113, 198, 255);
+    color: white;
+    text-align: center;
+    margin-top: 4px;
+    text-decoration: none;
+}
+.button:hover {
+    background: dodgerblue;
+}
+section aside {
+    background: rgb(217, 240, 255);
+    padding: 8px;
+    border-bottom: 2px solid white;
+}
+.dai {
+    font-size: 20px;
+    color: white;
+    background: dodgerblue;
+    padding: 2px 4px;
+}
+.item {
+    margin: 4px 0px;
+    padding: 0px;
+    border-left: 6px solid dodgerblue;
+    background: white;
+}
+.item:hover {
+    background: #f0f0f0;
+}
+.item span {
+    display: inline-block;
+    width: 200px;
+    max-width: 25%;
+    padding: 5px;
+    border-right: 3px solid rgb(217, 240, 255);
+    margin-right: 10px;
+}
+.item span:hover {
+    background: #dadada;
+}
+.item a {
+    float: right;
+    padding: 4px 1%;
+}
+#popup-port textarea {
+    font-size: 15px;
+    background: #c0c0c0;
+    border: 1px solid black;
+    margin-top: 8px;
+    width: calc(100% - 18px);
+    height: 120px;
+    padding: 8px;
+    resize: vertical;
+}
+#file {
+    display: none;
+}
+.comment {
+    font-size: 14px;
+    border: 2px solid gray;
+    margin: 2px;
+    padding: 4px;
+    border-radius: 4px;
+}
+#lock {
+    box-sizing: border-box;
+    background: white;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    padding: 40px 20px;
+    line-height: 300%;
+}
+#lock .textbox {
+    padding: 10px;
+    font-size: 24px;
+    text-align: center;
+}
+#lock .button {
+    margin-top: 20px;
+    display: block;
+}
+#reset_secret {
+    position: fixed;
+    right: 0px;
+    bottom: 0px;
+    width: 35px;
+    height: 35px;
+}

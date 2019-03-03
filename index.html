@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>JavaScript家計簿アプリ</title>
+    <script src="jquery.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, maximum-scale=1">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="style.css">
+    <script src="kakeibo.js"></script>
+</head>
+
+<body id="body">
+    <header>JavaScript家計簿
+        <a onclick="$('#popup-set').toggle()">設定</a>
+    </header>
+    <div id="tabs">
+        <div class="tab" id="tab-add">追加</div>
+        <a id="myname">名前を登録</a>
+    </div>
+    <div id="inc-out">
+        <span id="inc-out-inc">0</span>円−<span id="inc-out-out">0</span>円＝<span id="inc-out-sum">0円</span>
+    </div>
+    <section>
+        <aside id="out">
+            <span class="dai">支出</span>
+            合計<span id="out-sum">0</span>円
+            <div id="out-area">
+            </div>
+            <a class="button" id="add-out">追加する</a>
+        </aside>
+        <aside id="inc">
+            <span class="dai">収入</span>
+            合計<span id="inc-sum">0</span>円
+            <div id="inc-area">
+            </div>
+            <a class="button" id="add-inc">追加する</a>
+        </aside>
+    </section>
+
+
+
+
+    <div id="lock">ロック中です<br>パスワードを入力<br>
+        <input class="textbox" id="pass" type="password"><br>
+        <a class="button" id="unlock">OK</a>
+        <div id="reset_secret"></div>
+    </div>
+
+
+
+
+    <div class="popup" id="popup-name">
+        <div class="popup-title">
+            名前の登録・変更
+            <a onclick="$('#popup-name').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            現在の名前：<span id="name-cur">未登録</span>
+            <input class="textbox" id="new-name">
+            <a class="button" id="name-add">名前を登録</a>
+            <a class="button" id="name-remove">名前を削除</a>
+        </div>
+    </div>
+
+    <div class="popup" id="popup-out">
+        <div class="popup-title">
+            支出(項目)の追加
+            <a onclick="$('#popup-out').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            名称：
+            <input class="textbox" id="out-name">
+            金額(円)：
+            <input class="textbox" id="out-price">
+            <a class="button" id="out-add">項目を追加</a>
+        </div>
+    </div>
+
+    <div class="popup" id="popup-inc">
+        <div class="popup-title">
+            収入(項目)の追加
+            <a onclick="$('#popup-inc').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            名称：
+            <input class="textbox" id="inc-name">
+            金額(円)：
+            <input class="textbox" id="inc-price">
+            <a class="button" id="inc-add">項目を追加</a>
+        </div>
+    </div>
+
+    <div class="popup" id="popup-kingaku">
+        <div class="popup-title">
+            編集(金額の変更)
+            <a onclick="$('#popup-kingaku').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            名称：<span id="kingaku-name"></span><br>
+            金額(円)：
+            <input class="textbox" id="kingaku-price">
+            <a class="button" id="kingaku-add">変更する</a>
+        </div>
+    </div>
+
+    <div class="popup" id="popup-set">
+        <div class="popup-title">
+            設定
+            <a onclick="$('#popup-set').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            ・セキュリティ<br>
+            <a onclick="$('#popup-lock').show();">パスワードの設定</a><br>
+            ・家計簿データ(.json)<br>
+            <a id="set-port">インポート／エクスポート</a><br>
+            ・JS家計簿について<br>
+            <a onclick="popupAlert('これはなに？',about)">これはなに？</a><br>
+            ・データの全削除<br>
+            <a onclick="$('#popup-ac').show()" style="color:red">全てのデータを消去する</a>
+        </div>
+    </div>
+
+    <div class="popup" id="popup-lock">
+        <div class="popup-title">
+            セキュリティ
+            <a onclick="$('#popup-lock').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            ・現在のパスワード<br>
+            <span id="current_pass"></span><br>
+            ・パスワードの設定<br>
+            <input type="password" class="textbox" id="lock-pass" placeholder="パスワードを入力">
+            <a class="button" id="set-pass" onclick="popupAlert('パスワード','パスワードを設定しました')">パスワードを設定する</a><br>
+            再読込すると有効化されます。パスワードを初期化するときは空欄でパスワードの設定を押下してください。</a>
+        </div>
+    </div>
+
+    <div class="popup" id="popup-port">
+        <div class="popup-title">
+            インポート／エクスポート
+            <a onclick="$('#popup-port').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            ・<a onclick="popupAlert('使い方', portUsage)">機能の使い方</a>
+            <form name="myform">
+                <label for="file">
+                    <a class="button" id="import">インポート</a>
+                    <input type="file" id="file" name="myfile">
+                </label>
+                <a class="button" id="export">エクスポート</a><br>
+                <a class="button" id="export2">エクスポート(エンコードなし)</a>
+            </form>
+            <textarea id="portarea" disabled>データが未選択です</textarea>
+            <a onclick="$('#portarea').text(decodeURI($('#portarea').text()))">デコード</a>
+            <a id="export-dl">ダウンロード</a>
+        </div>
+    </div>
+
+    <div class="popup" id="popup-ac">
+        <div class="popup-title">
+            データの全削除
+            <a onclick="$('#popup-ac').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            本当にデータを全て削除しますか？この操作は取り消せません。必要なデータは予めエクスポートしてください。
+            <a class="button" onclick="$('#popup-ac').hide()">キャンセル</a>
+            <a class="button" id="ac-do" style="background: red">全削除を実行</a>
+        </div>
+    </div>
+
+    <div class="popup" id="popup-alert">
+        <div class="popup-title">
+            <span id="popup-alert-title">エラー</span>
+            <a onclick="$('#popup-alert').hide()">x</a>
+        </div>
+        <div class="popup-content">
+            エラーです
+            <a class="button" onclick="$('#popup-alert').hide()">閉じる</a>
+        </div>
+    </div>
+</body>
+
+</html>
